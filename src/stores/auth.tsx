@@ -7,9 +7,16 @@ import React, {
 } from 'react';
 import api from '../services/api';
 
+interface User {
+  id: string;
+  avatar_url: string;
+  name: string;
+  email: string;
+}
+
 interface AuthState {
   token: string;
-  user: object;
+  user: User;
 }
 
 interface SignInCredentials {
@@ -18,10 +25,11 @@ interface SignInCredentials {
 }
 
 interface AuthContextData {
-  user: object;
+  user: User;
   token?: string;
   signIn(credentials: SignInCredentials): Promise<void>;
   signOut(): void;
+  updateUser(user: User): void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -31,6 +39,7 @@ const AuthProvider: FC = ({ children }) => {
     const token = localStorage.getItem('@GoBarber:token');
     const user = localStorage.getItem('@GoBarber:user');
     if (user && token) {
+      api.defaults.headers.authorization = `Bearer ${token}`;
       return { token, user: JSON.parse(user) };
     }
     return {} as AuthState;
@@ -53,8 +62,21 @@ const AuthProvider: FC = ({ children }) => {
     setData({} as AuthState);
   }, []);
 
+  const updateUser = useCallback(
+    (user: User) => {
+      setData({
+        token: data.token,
+        user,
+      });
+      localStorage.setItem('@GoBarber:user', JSON.stringify(user));
+    },
+    [setData, data.token],
+  );
+
   return (
-    <AuthContext.Provider value={{ user: data.user, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ user: data.user, signIn, signOut, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

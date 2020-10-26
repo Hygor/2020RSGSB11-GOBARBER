@@ -14,6 +14,11 @@ export const Container = styled.button`
   margin-top: 1rem;
   transition: background-color 0.2s;
 
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
   &:hover {
     background-color: ${shade(0.2, '#ff9000')};
   }
